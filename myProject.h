@@ -1,6 +1,6 @@
 #ifdef
-#define _myproject_
+#define _myProject_
 
-int  printMyName2 (void);
+int printMyName2(void);
 
 #endif
