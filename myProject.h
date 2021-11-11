@@ -1,4 +1,5 @@
-#ifdef
+#include <stdio.h>
+#ifdef _myProject_
 #define _myProject_
 
 int printMyName2(void);

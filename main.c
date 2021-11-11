@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "myproject.h"
+#include "myProject.h"
 int main(void)
 {
-	printf("Chief name is []\n");
+	printf("Chief name is lee_woong_hee\n");
 	printMyName1();
 	printMyName2();
 }
