@@ -16,7 +16,7 @@ int main(void)
 {
     int ledNum = 0;
     int ledStat = 0;
-    int i=0;
+    int i=0; 
 
     ledLibInit();
 
