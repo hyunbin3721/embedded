@@ -1,12 +1,29 @@
-ledtest : ledtest.c libMyPeri.a led.h
-	arm-linux-gnueabi-gcc ledtest.c -l MyPeri -L. -o ledtest -lpthread
+CC = arm-linux-gnueabi-gcc
+AR = arm-linux-gnueabi-ar
 
-libMyPeri.a : led.o
-	arm-linux-gnueabi-ar rc libMyPeri.a led.o
+all: ledtest buttontest buzzertest
+
+buzzertest : buzzertest.c libMyPeri.a buzzer.h
+	$(CC) buzzertest.c -l MyPeri -L. -o buzzertest
+
+buttontest : buttontest.c libMyPeri.a button.h
+	$(CC) buttontest.c -l MyPeri -L. -o buttontest -lpthread
+
+ledtest : ledtest.c libMyPeri.a led.h
+	$(CC) ledtest.c -l MyPeri -L. -o ledtest
+
+libMyPeri.a : led.o button.o buzzer.o
+	$(AR) rc libMyPeri.a led.o button.o buzzer.o
 
 led.o : led.h led.c
-	arm-linux-gnueabi-gcc -c led.c -o led.o
+	$(CC) -c led.c -o led.o
 
-clear :
+button.o : button.h button.c
+	$(CC) -c button.c -o button.o
+
+buzzer.o : buzzer.h buzzer.c
+	$(CC) -c buzzer.c -o buzzer.o
+
+clean :
 	rm *.o
-	rm libMyPeri.a
+	rm *.a
