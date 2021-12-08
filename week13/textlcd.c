@@ -78,8 +78,13 @@ int lcdtextwrite(const char *str1, const char *str2, int lineFlag)
 		return 1; 
 	}
 
-	int textlcdclear(void)
-	{
+	stlcd.cmd = CMD_WRITE_STRING;
+	write(fd,&stlcd,sizeof(stTextLCD));
+	return 0;
+}
+
+int textlcdclear(void)
+{
 	const char lineclear_1[16] = {};
 	const char lineclear_2[16] = {};
 	lcdtextwrite(lineclear_1,lineclear_2,1);

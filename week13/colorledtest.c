@@ -28,11 +28,14 @@ int main(void)
     for(int i=0; i<3; i++)
     {   
         pwmSetPercent(0,i); //R0 -> G0 -> B0 -> R50 -> G50 -> ... G100 -> B100
-        usleep(100000);
+        printf("color change\n");        
+        usleep(1000000);
         pwmSetPercent(50,i);
-        usleep(100000);
+        printf("color change\n");
+        usleep(1000000);
         pwmSetPercent(100,i);
-        usleep(100000);   
+        printf("color change\n");
+        usleep(1000000);   
     }
     pwmInactiveAll();
     return 0;
