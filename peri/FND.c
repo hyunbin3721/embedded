@@ -29,7 +29,6 @@ int FND_init(void)
 
 int FND_write(unsigned int numInput, unsigned int dotInput)
 {
-	printf("fd: %d\n", fd);
 	unsigned char FND[2][6] = {
 		{0,},
 		{0,}

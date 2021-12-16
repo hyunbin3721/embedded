@@ -36,23 +36,6 @@
 #define MP3_PATH "/home/ecube/mp3/"
 #define MEMADD 1234//공유메모리 주소
 
-//PWM----------------------------------------------------------
-/*#define COLOR_LED_DEV_R_ "/sys/class/pwm/pwmchip0/"
-#define COLOR_LED_DEV_G_ "/sys/class/pwm/pwmchip1/"
-#define COLOR_LED_DEV_B_ "/sys/class/pwm/pwmchip2/"
-
-#define PWM_EXPORT "export"
-#define PWM_UNEXPORT "unexport"
-#define PWM_DUTY "pwm0/duty_cycle"
-#define PWM_PERIOD "pwm0/period"
-#define PWM_ENABLE "pwm0/enable"
-
-#define PWM_COLOR_R 0
-#define PWM_COLOR_G 1
-#define PWM_COLOR_B 2*/
-//----------------------------------------------------------------------
-
-
 static int msgID;
 static int forkStatus;
 static pid_t decoderPid, clockPid;
@@ -60,15 +43,14 @@ static pid_t decoderPid, clockPid;
 static int fd  = 0;
 static char *tmpBuff;
 static char fileBuf[2000];
-char nameBuf[10][16];
+char nameBuf[100][16];
 static int listIndex = 0;
 static int LEDstatus = 0;
 static int VOLstatus;
 static int textLcdstatus = 0;
 static int homeStatus = 0;
 static int menuStatus = 0;
-static unsigned int tim = 0;
-static int timCount = 0;
+
 BUTTON_MSG_T recieveButton;
 
 
@@ -79,8 +61,8 @@ int HOME(void);
 int SEARCH(void);
 int BACK(void);
 int MENU(void);
-int decode(int input, int color);
-int FNDClock(int input);
+//int decode(int input);
+//int FNDClock(int input);
 
 int main(void)
 {
@@ -110,8 +92,8 @@ int main(void)
 	ledLibInit();ledMid();//LED시작, LED1,2,3,4,5 ON
 	pwmLedInit();
 
-	textlcdInit();textlcdclear();lcdtextwrite(nameBuf[0]," ", 1);
-	FND_init();FND_on_clock();
+	textlcdInit();textlcdclear();lcdtextwrite(nameBuf[0]," ", 1);//textled 시작. 첫번째 제목 표시
+	FND_init();FND_on_clock();//FND 시작.
 	
 	if(buttonInit() != 1)printf("buttonInit Failed!\n");
 	
@@ -125,8 +107,10 @@ int main(void)
 	}
 	
 	if(decoderPid>0)clockPid = fork();
-		
-	if(decoderPid > 0 && clockPid > 0)//main
+
+
+//main=========================================================			
+	if(decoderPid > 0 && clockPid > 0)
 	{
 		int shmID = shmget((key_t)MEMADD, 1, IPC_CREAT|0666);
 		if(shmID == -1)
@@ -186,15 +170,19 @@ int main(void)
 		ledLibExit();
 		buttonExit();
 	}
+//======================================================================		
 	
-	else if(decoderPid== 0 && clockPid == -1)//decoder PID
+//decoder PID==================================================	
+	else if(decoderPid== 0 && clockPid == -1)
 	{
 		int shmID = shmget((key_t)MEMADD, 1, IPC_CREAT|0666);
+		
 		if(shmID == -1)
 		{
 			printf("shmget error!\n");
 			exit(-1);
 		}
+		
 		char *shmemAddr;
 		shmemAddr = shmat(shmID, (void*)NULL, 0);
 		if(((int)(shmemAddr))== -1)
@@ -204,40 +192,89 @@ int main(void)
 		
 		while(1)
 		{
-			for(int i = 0; i < 3; i++)
+			//decode(*((int*)shmemAddr));
+			//int playing = input;
+	
+			if(*((int*)shmemAddr))//디코딩,재생
 			{
-				decode(*((int*)shmemAddr), i);
-			}
-		}	//디코더 실행
+				printf("testing!\n");
+				for(int i=0; i<3; i++)
+				{   
+					pwmSetPercent(0,i);       
+					usleep(50000);
+					
+					pwmSetPercent(50,i);
+					usleep(50000);
+					
+					pwmSetPercent(100,i);
+					usleep(50000);   
+				}
+			 }
+		}
 	}
-	
-	else if(decoderPid > 0 && clockPid ==0)//clock PID;
+//======================================================================		
+		
+//clock PID====================================================
+	else if(decoderPid > 0 && clockPid ==0)
 	{
-		printf("clock pid init!\n");
+		unsigned int tim = 0;
+		int timCount = 0;
+		int flag = 0;
+		unsigned int sec = 10;
+		unsigned int min = 1000;
 		
 		int shmID = shmget((key_t)MEMADD, 1, IPC_CREAT|0666);
 		if(shmID == -1)
 		{
-			printf("shmget error!\n");
+			printf("clock pid shmget error!\n");
 			exit(-1);
 		}
 		char *shmemAddr;
 		shmemAddr = shmat(shmID, (void*)NULL, 0);
 		if(((int)(shmemAddr))== -1)
 		{
-			printf("shmat error!\n");
+			printf("clock pid shmat error!\n");
 		}
+		
 		while(1)
 		{
-			FNDClock(*((int*)shmemAddr));
+			if(*((int*)shmemAddr) == 0 && flag == 0)
+			{
+				FND_write(0,1000);
+				tim = 0;
+				timCount = 0;
+				flag = 1;
+			}
+			
+			while(*((int*)shmemAddr))
+			{
+				flag = 0;
+				if(timCount <59)
+				{
+					tim = tim + sec;
+					timCount++;
+				}
+				else
+				{
+					tim -= 590;
+					tim += min;
+					timCount = 0;
+				}
+
+				if(FND_write(tim, 1000) != 0)printf("FND write failed!\n");
+				sleep(1);			
+			}
 		}
 	}
-	
-	else//fork 실패
+//======================================================================
+
+//fork 실패=============================================================	
+	else
 	{
 		printf("Fork failed!\n");
 		exit(-1);
 	}
+//======================================================================
 }
 
 int ledMid(void)
@@ -277,13 +314,13 @@ int HOME(void)
 	{
 		lcdtextwrite(nameBuf[maxIndex], " ",1);
 	}
-	printf("to first music or last\n");
+	//printf("to first music or last\n");
 	
 }
 
 int MENU(void)
 {
-	printf("song should played button\n");
+	//printf("song should played button\n");
 	if(menuStatus == 0)
 	{
 		menuStatus = 1;
@@ -311,35 +348,31 @@ int SEARCH(void)
 	if(listIndex > maxIndex)listIndex = maxIndex;
 	lcdtextwrite(nameBuf[listIndex], " ", 1);
 }
-
-int decode(int input, int color)
+/*
+int decode(int input)
 {
 	int playing = input;
-	int i = color;
 	
 	if(playing)//디코딩,재생
 	{
 		printf("testing!\n");
-		//for(int i=0; i<3; i++)
-		//{   
-			pwmSetPercent(0,i);
-			printf("color change\n");        
-			sleep(1);
+		for(int i=0; i<3; i++)
+		{   
+			pwmSetPercent(0,i);       
+			usleep(50000);
+			
 			pwmSetPercent(50,i);
-			printf("color change\n");
-			sleep(1);
+			usleep(50000);
+			
 			pwmSetPercent(100,i);
-			printf("color change\n");
-			sleep(1);   
-	//	}
+			usleep(50000);   
+		}
 	}
-}
-
+}*/
+/*
 int FNDClock(int input)
 {
-	printf("fnd init!\n");
-	int work = input;
-	if(work == 0)
+	if(input == 0)
 	{
 		FND_write(0,0);
 		tim = 0;
@@ -348,25 +381,26 @@ int FNDClock(int input)
 	unsigned int sec = 10;
 	unsigned int min = 1000;
 
-	printf("fnd write init!\n");
-	//while(work)
-	//{
-		printf("FNDwhile!\n");
-	  if(timCount <59)
+	while(input)
+	{
+		//printf("FNDwhile!\n");
+		if(timCount <59)
 		{
 			tim = tim + sec;
 			timCount++;
-			printf("timCount < 59!\n");
+			//printf("timCount < 59!\n");
 		}
-	  else
+		else
 		{
 			tim -= 590;
 			tim += min;
 			timCount = 0;
-			printf("timCount > 60!\n");
-		//}
-		printf("tim is: %d\n", tim);
+			//printf("timCount > 60!\n");
+		}
+		
+		//printf("tim is: %d\n", tim);
 		if(FND_write(tim, 1000) != 0)printf("FND write failed!\n");
 		sleep(1);
 	}
-} 
+	 */
+ 
