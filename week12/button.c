@@ -58,6 +58,7 @@ int probeButtonPath(char *newPath)
 void* button_read(void *arg)
 {
 	BUTTON_MSG_T sendButton;
+	printf("button_read_active!\n");
 	
 	msgID = msgget ((key_t)MESSAGE_ID, IPC_CREAT|0666);
 	if(msgID == -1)

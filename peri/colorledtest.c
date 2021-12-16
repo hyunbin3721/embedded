@@ -29,13 +29,13 @@ int main(void)
     {   
         pwmSetPercent(0,i); //R0 -> G0 -> B0 -> R50 -> G50 -> ... G100 -> B100
         printf("color change\n");        
-        usleep(1000000);
+        sleep(1);
         pwmSetPercent(50,i);
         printf("color change\n");
-        usleep(1000000);
+        sleep(1);
         pwmSetPercent(100,i);
         printf("color change\n");
-        usleep(1000000);   
+        sleep(1);   
     }
     pwmInactiveAll();
     return 0;

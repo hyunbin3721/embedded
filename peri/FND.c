@@ -29,6 +29,7 @@ int FND_init(void)
 
 int FND_write(unsigned int numInput, unsigned int dotInput)
 {
+	printf("fd: %d\n", fd);
 	unsigned char FND[2][6] = {
 		{0,},
 		{0,}
@@ -58,15 +59,35 @@ int FND_write(unsigned int numInput, unsigned int dotInput)
 		buffer.DataNumber[cnt] = FND[0][cnt];
 		buffer.DataDot[5-cnt] = FND[1][cnt];
 	}
-		
+	
+	
 	if(write(fd, &buffer, sizeof(buffer)) < 0)
 	{
 		return 1;
 	}
-	else return 0;
+	FND_clean();
+	return 0;
 	
 }
 
+int FND_on_clock(void)
+{
+	int cnt = 0;
+	for(cnt = 1; cnt < 5; cnt++)
+	{
+		buffer.DataPower[cnt] = 1;
+	}
+	buffer.DataPower[0] = 0;
+	buffer.DataPower[0] = 0;
+	buffer.DataDot[2] = 1;
+	
+	if(write(fd, &buffer, sizeof(buffer)) < 0)
+	{
+		return 1;
+	}
+	FND_clean();
+	return 0;
+}
 int FND_on(void)
 {
 	int cnt = 0;
@@ -79,6 +100,15 @@ int FND_on(void)
 		return 1;
 	}
 	else return 0;
+}
+int FND_clean(void)
+{
+	int cnt = 0;
+	for(cnt = 0; cnt < 6; cnt++)
+	{
+		buffer.DataDot[cnt] = 0;
+		buffer.DataNumber[cnt] = 0;
+	}
 }
 
 int FND_off(void)

@@ -31,18 +31,21 @@ int main(void)
     while(1)
     {
 		msgrcv(msgID, &recieveButton, sizeof(recieveButton.pressed)+sizeof(recieveButton.keyInput), 0,0);
-		switch(recieveButton.keyInput)
-		{
-			case 1: printf("VOLUP "); break;
-			case 2: printf("HOME "); break;
-			case 3: printf("SEARCH "); break;
-			case 4: printf("BACK "); break;
-			case 5: printf("MENU "); break;
-			case 6: printf("VOLDOWN "); break;
-		}
 		
 		if(recieveButton.pressed)printf("pressed.\n");
-		else printf("released\n");
+		else 
+		{
+			switch(recieveButton.keyInput)
+			{
+				case 1: printf("VOLUP "); break;
+				case 2: printf("HOME "); break;
+				case 3: printf("SEARCH "); break;
+				case 4: printf("BACK "); break;
+				case 5: printf("MENU "); break;
+				case 6: printf("VOLDOWN "); break;
+			}
+			printf("released\n");
+		}
 		if(status == 1)break;
 	}
 	

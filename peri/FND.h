@@ -17,5 +17,6 @@ int FND_write(unsigned int numInput, unsigned int dotInput);
 int FND_on(void);
 int FND_off(void);
 int FND_exit(void);
+int FND_on_clock(void);
 
 #endif //_FND_h_
