@@ -16,6 +16,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/shm.h>
+
 /*
 #include "./mad/mad.h"//실제 라이브러리 추가 필요
 #include <pulse/simple.h>
@@ -70,9 +71,6 @@ int SEARCH(void);
 int BACK(void);
 int MENU(void);
 
-//int decode(int input);
-//int FNDClock(int input);
-
 int main(void)
 {
 //mp3파일 디렉토리 내용 읽기==============================================
@@ -93,7 +91,6 @@ int main(void)
 		if(dir->d_type == DT_REG)
 		{
 			strcpy(nameBuf[listIndex],dir->d_name);
-			//nameBuf[listIndex][30]='\0';nameBuf[listIndex][15]='\0';
 			fileBuf[listIndex] = &nameBuf[listIndex][0];
 			listIndex++;
 			if(listIndex > sizeof(fileBuf))
@@ -212,9 +209,6 @@ int main(void)
 		
 		while(1)
 		{
-			//decode(*((int*)shmemAddr));
-			//int playing = input;
-	
 			if(*((int*)shmemAddr))//디코딩,재생
 			{
 				printf("testing!\n");
@@ -369,67 +363,11 @@ int SEARCH(void)
 	if(listIndex > listIndexMax)listIndex = listIndexMax;
 	textlcdBufferWrite();
 }
-//======================================================================
-/*
-int decode(int input)
-{
-	int playing = input;
-	
-	if(playing)//디코딩,재생
-	{
-		printf("testing!\n");
-		for(int i=0; i<3; i++)
-		{   
-			pwmSetPercent(0,i);       
-			usleep(50000);
-			
-			pwmSetPercent(50,i);
-			usleep(50000);
-			
-			pwmSetPercent(100,i);
-			usleep(50000);   
-		}
-	}
-}*/
-/*
-int FNDClock(int input)
-{
-	if(input == 0)
-	{
-		FND_write(0,0);
-		tim = 0;
-		timCount = 0;
-	}
-	unsigned int sec = 10;
-	unsigned int min = 1000;
 
-	while(input)
-	{
-		//printf("FNDwhile!\n");
-		if(timCount <59)
-		{
-			tim = tim + sec;
-			timCount++;
-			//printf("timCount < 59!\n");
-		}
-		else
-		{
-			tim -= 590;
-			tim += min;
-			timCount = 0;
-			//printf("timCount > 60!\n");
-		}
-		
-		//printf("tim is: %d\n", tim);
-		if(FND_write(tim, 1000) != 0)printf("FND write failed!\n");
-		sleep(1);
-	}
-	 */
  int textlcdBufferWrite(void)
  {
 	 memcpy(line1Buf, &nameBuf[listIndex][0],16);
 	 memcpy(line2Buf, &nameBuf[listIndex][16],16);
      line1Buf[16] = '\0'; line2Buf[16] = '\0';
      for(int cnt = 1; cnt < 3; cnt++)lcdtextwrite(line1Buf,line2Buf,cnt);
-	// printf("line1: %s ", line1Buf); printf("line2: %s\n", line2Buf);
  }
