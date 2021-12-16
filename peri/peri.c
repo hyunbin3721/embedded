@@ -41,10 +41,12 @@ static int forkStatus;
 static pid_t decoderPid, clockPid;
 
 static int fd  = 0;
+static int mp3 = 0;
 static char *tmpBuff;
-static char fileBuf[2000];
-char nameBuf[100][16];
+static char *fileBuf[100];
+static char nameBuf[100][30];
 static int listIndex = 0;
+static int listIndexMax = 0;
 static int LEDstatus = 0;
 static int VOLstatus;
 static int textLcdstatus = 0;
@@ -66,6 +68,7 @@ int MENU(void);
 
 int main(void)
 {
+	
 	DIR *list;
 	struct dirent *dir;
 	int status;
@@ -77,22 +80,36 @@ int main(void)
 		exit(-1);
 	}
 	
-	while((dir = readdir(list)))
+	while((dir = readdir(list)) != NULL)
 	{
 		if(dir->d_type == DT_REG)
 		{
-			strcpy(nameBuf[listIndex],dir->d_name);
-			printf("buf: %s\n",nameBuf[listIndex]); 
+			memcpy(nameBuf[listIndex],dir->d_name,15);
+			nameBuf[listIndex][16]='\0';
+			fileBuf[listIndex] = &nameBuf[listIndex][0];
 			listIndex++;
+			if(listIndex > sizeof(fileBuf))
+			{
+				printf("too many mp3 files!\n");
+				exit(-1);
+			}
+			listIndexMax = listIndex;
 		}
 	}
+	listIndex = 0; listIndexMax--;
+	printf("file max index: %d\n", listIndexMax);
 	
 	closedir(list);
+	
+	/*if((fd = open(MP3_PATH "list.txt", O_RDONLY)) < 0)
+	{
+		printf("list open failed!\n");
+	}*/
 	
 	ledLibInit();ledMid();//LED시작, LED1,2,3,4,5 ON
 	pwmLedInit();
 
-	textlcdInit();textlcdclear();lcdtextwrite(nameBuf[0]," ", 1);//textled 시작. 첫번째 제목 표시
+	textlcdInit();lcdtextwrite(fileBuf[listIndex]," ", 1);//textled 시작. 첫번째 제목 표시
 	FND_init();FND_on_clock();//FND 시작.
 	
 	if(buttonInit() != 1)printf("buttonInit Failed!\n");
@@ -277,6 +294,8 @@ int main(void)
 //======================================================================
 }
 
+
+
 int ledMid(void)
 {
 	for(int ledCnt = 0; ledCnt < 4; ledCnt++)
@@ -287,6 +306,7 @@ int ledMid(void)
 	LEDstatus = 3;
 }
 
+//키 함수================================================================
 int VOLUP(void)
 {
 	LEDstatus++;
@@ -303,16 +323,16 @@ int VOLDOWN(void)
 
 int HOME(void)
 {
-	int maxIndex = sizeof(nameBuf[0]);
 	
-	if(homeStatus == 1)
+	if(listIndex == listIndexMax)
 	{
-		lcdtextwrite(nameBuf[0], " ",1);
+		lcdtextwrite(fileBuf[0], " ",1);
 		homeStatus = 0;
 	}
 	else
 	{
-		lcdtextwrite(nameBuf[maxIndex], " ",1);
+		lcdtextwrite(fileBuf[listIndexMax], " ",1);
+		listIndex = listIndexMax;
 	}
 	//printf("to first music or last\n");
 	
@@ -338,16 +358,16 @@ int BACK(void)
 {
 	listIndex--;
 	if(listIndex < 0)listIndex = 0;
-	lcdtextwrite(nameBuf[listIndex], " ", 1);			
+	lcdtextwrite(fileBuf[listIndex], " ", 1);			
 }
 
 int SEARCH(void)
 {
-	int maxIndex = sizeof(nameBuf[0]);
 	listIndex++;
-	if(listIndex > maxIndex)listIndex = maxIndex;
-	lcdtextwrite(nameBuf[listIndex], " ", 1);
+	if(listIndex > listIndexMax)listIndex = listIndexMax;
+	lcdtextwrite(fileBuf[listIndexMax], " ", 1);
 }
+//======================================================================
 /*
 int decode(int input)
 {
